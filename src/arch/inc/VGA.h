@@ -36,18 +36,17 @@ class VGAOutput {
         uint8_t Color;
 
         void PrintNewLine();
-        void PrintReturn();
 
     public:
         VGAOutput();
 
         void ChangeBackgroundColor(uint8_t bgCol);
         void ClearScreen();
-        void ClearRow(size_t row);
+        void ClearRow(uint8_t row);
         void PrintChar(char chr);
         void PrintString(const char* string);
         void SetClearColor(uint8_t color);
         void SetColor(uint8_t fgCol = 0xff, uint8_t bgCol = 0xff);  // Temp solution for lack of static vars
-        void SetPosition(size_t col, size_t row);
+        void SetPosition(uint8_t col, uint8_t row);
         void SetPosition(Point pos);
 };

@@ -9,7 +9,7 @@ VGAOutput::VGAOutput() {
     Color = VGAColor(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 }
 
-void VGAOutput::ClearRow(size_t row) {
+void VGAOutput::ClearRow(uint8_t row) {
     VGAChar empty = {' ', Color};
     for (size_t col = 0; col < NUM_COLS; col++) Buffer[col + NUM_COLS * row] = empty;
 }
@@ -40,10 +40,6 @@ void VGAOutput::PrintNewLine() {
     ClearRow(NUM_ROWS - 1);
 }
 
-void VGAOutput::PrintReturn() {
-    CursorPos.x = 0;
-}
-
 void VGAOutput::PrintChar(char chr) {
     switch (chr) {
         case '\n':
@@ -51,7 +47,13 @@ void VGAOutput::PrintChar(char chr) {
             return;
 
         case '\r':
-            PrintReturn();
+            CursorPos.x = 0;
+            return;
+    
+        case '\t':
+            Buffer[CursorPos.x + NUM_COLS * CursorPos.y] = {(uint8_t)'|', Color};        
+            CursorPos.x += 4;
+            if (CursorPos.x > NUM_COLS) PrintString("\n\r");
             return;
     }
 
@@ -76,7 +78,12 @@ void VGAOutput::SetColor(uint8_t fgCol, uint8_t bgCol) {
     Color = VGAColor(fgCol, bgCol);
 }
 
-void VGAOutput::SetPosition(size_t col, size_t row) {
+void VGAOutput::SetPosition(uint8_t col, uint8_t row) {
     CursorPos.x = col;
     CursorPos.y = row;
+}
+
+void VGAOutput::SetPosition(Point pos) {
+    CursorPos.x = Abs(pos.x);
+    CursorPos.y = Abs(pos.y);
 }
