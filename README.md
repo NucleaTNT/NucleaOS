@@ -15,7 +15,7 @@ Build an image for our build-environment:
 
 ## Build
 Enter build environment:
-- Linux or MacOS: `docker run --rm -it -v "$pwd":/root/env nucleaos-buildenv`
+- Linux or MacOS: `docker run --rm -it -v "$PWD":/root/env nucleaos-buildenv`
 - Windows (CMD): `docker run --rm -it -v "%cd%":/root/env nucleaos-buildenv`
 
 Build for x86_64:

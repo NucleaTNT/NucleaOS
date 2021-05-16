@@ -1,12 +1,9 @@
-#include "../inc/Screen.h"
+#include "VGA.h"
 
 extern "C" void KernelEntry() {
-    SetClearColor(PRINT_COLOR_CYAN);
-    ClearScreen();
-    
-    SetPrintColor(PRINT_COLOR_YELLOW, PRINT_COLOR_CYAN);
-    PrintString("[KERNEL] ~ Hiiiii!\n\r");
+    VGAOutput vgaOutput = VGAOutput();
 
-    SetPrintColor(PRINT_COLOR_RED, PRINT_COLOR_CYAN);
-    PrintString("[KERNEL] ~ Bye!");
+    vgaOutput.SetColor(VGA_COLOR_WHITE, VGA_COLOR_CYAN);
+    vgaOutput.ClearScreen();
+    vgaOutput.PrintString("Welcome!\n\r");
 }
