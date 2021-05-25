@@ -9,7 +9,7 @@ x86_64_CPP_OBJECTS	:= $(patsubst src/arch/x86_64/%.cpp, build/x86_64/%.o, $(x86_
 
 x86_64_OBJECTS		:= $(x86_64_CPP_OBJECTS) $(x86_64_ASM_OBJECTS)
 
-C_FLAGS 			:= -I src/arch/inc -ffreestanding -g
+C_FLAGS 			:= -I src/arch/inc -ffreestanding
 
 current: build-x86_64
 
