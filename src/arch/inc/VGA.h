@@ -1,7 +1,6 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
 #include "Math.h"
+#include "Typedefs.h"
 
 #define VGAColor(fgCol, bgCol) (fgCol + (bgCol << 4)) 
 

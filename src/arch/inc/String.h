@@ -1,6 +1,5 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
+#include "Typedefs.h"
 
 void StrCat(char* dest, const char* src);
 void StrCopy(char* dest, const char* src);

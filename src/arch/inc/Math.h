@@ -1,8 +1,7 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
+#include "Typedefs.h"
 
-//#define Abs(x) (x < 0) ? x * -1 : x
+// #define Abs(x) (x < 0) ? x * -1 : x
 
 typedef struct {
 	size_t x, y;
