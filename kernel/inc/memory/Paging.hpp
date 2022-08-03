@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 
+#include "memory/Memory.hpp"
+
 enum PageTableFlag {
     PRESENT,
     READ_WRITE,
@@ -27,7 +29,7 @@ struct PageDirectoryEntry {
 
 struct PageTable {
     PageDirectoryEntry DirectoryEntries[512];
-} __attribute__((aligned(0x1000)));
+} __attribute__((aligned(PAGE_SIZE)));
 
 struct PageMapIndex {
     uint64_t PageDirectoryPointerIndex;  // Level 4

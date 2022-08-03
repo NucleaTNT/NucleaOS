@@ -20,7 +20,7 @@ const char* EFI_MEMORY_TYPE_STRINGS[] = {
     "EfiPersistentMemory",
     "EfiUnacceptedMemoryType"};
 
-void printEFIMemoryMapInfo(TextRenderer* OUTPUT, MemoryMapInfo* memMapInfo) {
+void printEFIMemoryMapInfo(MemoryMapInfo* memMapInfo, TextRenderer* OUTPUT) {
     OUTPUT->_print(
         "\n\r+ =================== + =================== + =================== + =================== + =================== +\n\r\
 |                     |      DESC ADDR      |      DESC SIZE      |   MEMORY MAP SIZE   |   MAP ENTRY COUNT   |\n\r\

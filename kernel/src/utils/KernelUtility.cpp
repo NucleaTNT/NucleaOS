@@ -1,5 +1,10 @@
 #include "utils/KernelUtility.hpp"
 
+#include "TextRenderer.hpp"
+#include "interrupts/InterruptDescriptorTable.hpp"
+#include "interrupts/Interrupts.hpp"
+#include "memory/GlobalDescriptorTable.hpp"
+
 void prepareMemory(BootInfo *bootInfo) {
     g_PageFrameAllocator.readEFIMemoryMap(bootInfo->MemMapInfo);
     size_t totalMemSize = getTotalMemorySize(bootInfo->MemMapInfo);
@@ -30,6 +35,32 @@ void prepareMemory(BootInfo *bootInfo) {
     memset(bootInfo->GlobalFrameBuffer->BaseAddress, 0, bootInfo->GlobalFrameBuffer->BufferSize);
 }
 
+IDTRegister idtRegister;
+void prepareInterrupts() {
+    idtRegister.Size = 0x0fff;
+    idtRegister.Offset = (uint64_t)g_PageFrameAllocator.requestPage();
+
+    InterruptDescriptor *interrupt_PageFault = (InterruptDescriptor *)(idtRegister.Offset + 0xe * sizeof(InterruptDescriptor));
+    interrupt_PageFault->setOffset((uint64_t)handler_PageFault);
+    interrupt_PageFault->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
+    interrupt_PageFault->Selector = 0x08;
+
+    asm("lidt %0"
+        :
+        : "m"(idtRegister));
+}
+
+static TextRenderer OUTPUT((FrameBuffer){}, (PSF1_Font){}, 0);
 void initializeKernel(BootInfo *bootInfo) {
+    GDTDescriptor gdtDescriptor;
+    gdtDescriptor.Size = sizeof(GlobalDescriptorTable) - 1;
+    gdtDescriptor.Offset = (uint64_t)&g_GlobalDescriptorTable;
+    _loadGDT(&gdtDescriptor);
+
     prepareMemory(bootInfo);
+
+    OUTPUT = TextRenderer(*bootInfo->GlobalFrameBuffer, *bootInfo->LoadedFont, 0xffffffff);
+    g_TextRenderer = OUTPUT;
+
+    prepareInterrupts();
 }

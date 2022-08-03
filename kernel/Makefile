@@ -4,8 +4,11 @@ OSNAME = NucleaOS
 GNUEFI = ../gnu-efi
 OVMFDIR = ../OVMFbin
 LDS = LinkScript.ld
+ASM = nasm
 CC = gcc
+LD = ld
 
+ASMFLAGS =
 CFLAGS = -ffreestanding -fshort-wchar -I $(INCDIR) -g
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 
@@ -18,8 +21,10 @@ BOOTEFI := $(GNUEFI)/x86_64/bootloader/main.efi
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
+ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)         
 SRC = $(call rwildcard,$(SRCDIR),*.cpp)          
-OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
+OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.cpp_o, $(SRC))
+OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%.asm_o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
 buildimg:
@@ -34,10 +39,20 @@ buildimg:
 
 kernel: $(OBJS) link
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+$(OBJDIR)/interrupts/Interrupts.cpp_o: $(SRCDIR)/interrupts/Interrupts.cpp
+	@echo \| ===== Compiling $^ ===== \|
+	@mkdir -p $(@D)
+	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -I $(INCDIR) -c $^ -o $@
+
+$(OBJDIR)/%.cpp_o: $(SRCDIR)/%.cpp
 	@echo \| ===== Compiling $^ ===== \|
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
+
+$(OBJDIR)/%.asm_o: $(SRCDIR)/%.asm
+	@echo \| ===== Assembling $^ ===== \|
+	@mkdir -p $(@D)
+	$(ASM) $(ASMFLAGS) $^ -f elf64 -o $@
 
 link:
 	@echo \| ===== Linking ===== \|

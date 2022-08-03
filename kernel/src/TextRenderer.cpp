@@ -1,5 +1,7 @@
 #include "TextRenderer.hpp"
 
+TextRenderer g_TextRenderer((FrameBuffer){}, (PSF1_Font){}, 0);
+
 TextRenderer::TextRenderer(FrameBuffer targetFrameBuffer, PSF1_Font font, uint32_t colorByte = 0xffffffff) {
     _targetBuffer = targetFrameBuffer;
     _activeFont = font;
@@ -69,4 +71,8 @@ void TextRenderer::_print(const char* str) {
             CursorPosition.X += 1;
         }
     }
+}
+
+FrameBuffer TextRenderer::getTargetBuffer() {
+    return _targetBuffer;
 }

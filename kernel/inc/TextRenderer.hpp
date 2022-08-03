@@ -56,6 +56,8 @@ class TextRenderer {
      */
     void _print(const char* str);
 
+    FrameBuffer getTargetBuffer();
+
     /**
      * @brief Puts a character into the targetBuffer at (xOffset, yOffset)px.
      *
@@ -70,3 +72,5 @@ class TextRenderer {
      */
     void _putChar(const char chr, uint32_t colorByte, uint32_t xOffset, uint32_t yOffset);
 };
+
+extern TextRenderer g_TextRenderer;

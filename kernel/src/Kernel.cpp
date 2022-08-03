@@ -1,20 +1,28 @@
 #include "utils/KernelUtility.hpp"
 
 extern "C" void _kernelEntry(BootInfo bootInfo) {
-    TextRenderer OUTPUT = TextRenderer(*bootInfo.GlobalFrameBuffer, *bootInfo.LoadedFont, 0xffffffff);
     MemoryMapInfo memMapInfo = *bootInfo.MemMapInfo;
 
     initializeKernel(&bootInfo);
+    size_t totalMemSize = getTotalMemorySize();
 
-    OUTPUT._print("[INFO]: Hello from the kernel! :D\n\r");
-    OUTPUT._print(to_string(g_PageFrameAllocator.getFreeMemorySize()));
-    OUTPUT._print("\n\r");
-    OUTPUT._print(to_string(g_PageFrameAllocator.getUsedMemorySize()));
-    OUTPUT._print("\n\r");
-    OUTPUT._print(to_string(g_PageFrameAllocator.getReservedMemorySize()));
-    OUTPUT._print("\n\r");
+    g_TextRenderer._print("[INFO]: Hello from the kernel! :D\n\r");
 
-    printEFIMemoryMapInfo(&OUTPUT, &memMapInfo);
+    g_TextRenderer._print("\n\r");
+    g_TextRenderer._print(str_padright("Free RAM Size: ", 20, ' '));
+    g_TextRenderer._print(str_padleft(to_string((double)g_PageFrameAllocator.getFreeMemorySize() / 0x400, 3), 16, ' '));
+    g_TextRenderer._print("MiB\n\r");
+    g_TextRenderer._print(str_padright("Used RAM Size: ", 20, ' '));
+    g_TextRenderer._print(str_padleft(to_string((double)g_PageFrameAllocator.getUsedMemorySize() / 0x400, 3), 16, ' '));
+    g_TextRenderer._print("MiB\n\r");
+    g_TextRenderer._print(str_padright("Reserved RAM Size: ", 20, ' '));
+    g_TextRenderer._print(str_padleft(to_string((double)g_PageFrameAllocator.getReservedMemorySize() / 0x400, 3), 16, ' '));
+    g_TextRenderer._print("MiB\n\r");
+    g_TextRenderer._print(str_padright("Total RAM Size: ", 20, ' '));
+    g_TextRenderer._print(str_padleft(to_string((double)totalMemSize / 0x100000, 3), 16, ' '));
+    g_TextRenderer._print("MiB\n\r");
+
+    asm("int $0x0e");
 
     while (true) {
     }

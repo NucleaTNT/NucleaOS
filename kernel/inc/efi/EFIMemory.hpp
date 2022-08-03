@@ -56,7 +56,7 @@ extern const char* EFI_MEMORY_TYPE_STRINGS[];
 /**
  * @brief Pretty little method to display the EFIMemoryMap to the screen.
  *
- * @param OUTPUT The TextRenderer to output the generated table to.
  * @param memMapInfo Pointer to the MemoryMapInfo to read from.
+ * @param OUTPUT The TextRenderer to output the generated table to.
  */
-void printEFIMemoryMapInfo(TextRenderer* OUTPUT, MemoryMapInfo* memMapInfo);
+void printEFIMemoryMapInfo(MemoryMapInfo* memMapInfo, TextRenderer* OUTPUT = &g_TextRenderer);
