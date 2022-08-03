@@ -1,0 +1,78 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Build Kernel",
+            "command": "/usr/bin/make",
+            "args": [
+                "kernel",
+                "buildimg"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/kernel"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "process",
+            "label": "Launch Qemu",
+            "command": "/usr/bin/make",
+            "args": [
+                "run"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/kernel"
+            },
+        },
+        
+        //
+        //  This task doesn't work as despite being marked as a background task,
+        //  when provided as the debug configuration's "preLaunchTask" it causes
+        //  the debug task to wait until QEMU exits before attempting to connect
+        //  GDB. QEMU waits for GDB to connect resulting in a deadlock.
+        //
+        // {
+        //     "type": "process",
+        //     "label": "Debug Qemu",
+        //     "command": "qemu-system-x86_64",
+        //     "args": [
+        //         "-drive",
+        //         "file=bin/NucleaOS.img",
+        //         "-m",
+        //         "256M",
+        //         "-cpu",
+        //         "qemu64",
+        //         "-drive",
+        //         "if=pflash,format=raw,unit=0,file=../OVMFbin/OVMF_CODE-pure-efi.fd,readonly=on",
+        //         "-drive",
+        //         "if=pflash,format=raw,unit=1,file=../OVMFbin/OVMF_VARS-pure-efi.fd",
+        //         "-net",
+        //         "none",
+        //         "-s",
+        //         "-S"
+        //     ],
+        //     "options": {
+        //         "cwd": "${workspaceFolder}/kernel"
+        //     },
+        //     "dependsOn": "Build kernel",
+        //     "isBackground": true
+        // }
+
+        // Found this as a workaround (for now) to the aforementioned preLaunchTask issue.
+        {
+            "type": "shell",
+            "label": "Debug Qemu",
+            "command": "nohup qemu-system-x86_64 -drive file=kernel/bin/NucleaOS.img -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file=OVMFbin/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=OVMFbin/OVMF_VARS-pure-efi.fd -net none -s >&/dev/null",
+            "isBackground": true,
+            // "dependsOn": "Build Kernel", -> this also prevents GDB from launching... I honestly don't know anymore
+            "problemMatcher": []
+        }
+    ],
+    "version": "2.0.0"
+}
