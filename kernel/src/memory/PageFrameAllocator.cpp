@@ -7,6 +7,8 @@ static uint64_t g_FreeMemorySize = 0,
                 g_UsedMemorySize = 0,
                 g_ReservedMemorySize = 0;
 static bool g_IsInitialized = false;
+PageFrameAllocator g_PageFrameAllocator = PageFrameAllocator();
+static size_t g_lastRequestedIndex = 0;
 
 void PageFrameAllocator::readEFIMemoryMap(MemoryMapInfo *memMapInfo) {
     if (g_IsInitialized) {
@@ -18,7 +20,7 @@ void PageFrameAllocator::readEFIMemoryMap(MemoryMapInfo *memMapInfo) {
      * Iterate through all memory segments to find the largest to store the
      * PageBitMap in.
      */
-    EFI_MEMORY_DESCRIPTOR *largestMemorySegment;
+    EFI_MEMORY_DESCRIPTOR *largestMemorySegment = nullptr;
     for (size_t i = 0; i < memMapInfo->EntryCount; i++) {
         EFI_MEMORY_DESCRIPTOR *desc = (EFI_MEMORY_DESCRIPTOR *)((uint64_t)memMapInfo->MemoryMap + (i * memMapInfo->DescriptorSize));
         if (desc->Type == EfiConventionalMemory) {
@@ -33,7 +35,7 @@ void PageFrameAllocator::readEFIMemoryMap(MemoryMapInfo *memMapInfo) {
 
     /* Place the PageBitMap in the largest available memory segment. */
     uint8_t *pageBitMapBuffer = (uint8_t *)largestMemorySegment->PhysicalAddress;
-    size_t pageBitMapSize = ((totalMemorySize / PAGE_SIZE) / 8) + 1;
+    size_t pageBitMapSize = ((totalMemorySize / PAGE_SIZE) / 8);
     _pageBitMap = BitMap(pageBitMapBuffer, pageBitMapSize);
 
     /*
@@ -60,10 +62,10 @@ void PageFrameAllocator::freePages(void *address, size_t count) {
         uint64_t index = ((uint64_t)address / PAGE_SIZE) + i;
         if (!_pageBitMap[index]) {
             continue;
+        } else if (_pageBitMap.Set(index, false)) {
+            g_FreeMemorySize += PAGE_SIZE;
+            g_UsedMemorySize -= PAGE_SIZE;
         }
-        _pageBitMap.Set(index, false);
-        g_FreeMemorySize += PAGE_SIZE;
-        g_UsedMemorySize -= PAGE_SIZE;
     }
 }
 
@@ -72,10 +74,14 @@ void PageFrameAllocator::lockPages(void *address, size_t count) {
         uint64_t index = ((uint64_t)address / PAGE_SIZE) + i;
         if (_pageBitMap[index]) {
             continue;
+        } else if (_pageBitMap.Set(index, true)) {
+            g_FreeMemorySize -= PAGE_SIZE;
+            g_UsedMemorySize += PAGE_SIZE;
+
+            if (index < g_lastRequestedIndex) {
+                g_lastRequestedIndex = index;
+            }
         }
-        _pageBitMap.Set(index, true);
-        g_FreeMemorySize -= PAGE_SIZE;
-        g_UsedMemorySize += PAGE_SIZE;
     }
 }
 void PageFrameAllocator::reservePages(void *address, size_t count) {
@@ -83,10 +89,10 @@ void PageFrameAllocator::reservePages(void *address, size_t count) {
         uint64_t index = ((uint64_t)address / PAGE_SIZE) + i;
         if (_pageBitMap[index]) {
             continue;
+        } else if (_pageBitMap.Set(index, true)) {
+            g_FreeMemorySize -= PAGE_SIZE;
+            g_ReservedMemorySize += PAGE_SIZE;
         }
-        _pageBitMap.Set(index, true);
-        g_FreeMemorySize -= PAGE_SIZE;
-        g_ReservedMemorySize += PAGE_SIZE;
     }
 }
 
@@ -95,20 +101,25 @@ void PageFrameAllocator::releasePages(void *address, size_t count) {
         uint64_t index = ((uint64_t)address / PAGE_SIZE) + i;
         if (!_pageBitMap[index]) {
             continue;
+        } else if (_pageBitMap.Set(index, false)) {
+            g_FreeMemorySize += PAGE_SIZE;
+            g_ReservedMemorySize -= PAGE_SIZE;
+
+            if (index < g_lastRequestedIndex) {
+                g_lastRequestedIndex = index;
+            }
         }
-        _pageBitMap.Set(index, false);
-        g_FreeMemorySize += PAGE_SIZE;
-        g_ReservedMemorySize -= PAGE_SIZE;
     }
 }
 
 void *PageFrameAllocator::requestPage() {
-    for (size_t i = 0; i < _pageBitMap.getSize() * 8; i++) {
-        if (_pageBitMap[i]) {
+    size_t bitMapMaxIndex = _pageBitMap.getSize() * 8;
+    for (; g_lastRequestedIndex < bitMapMaxIndex; g_lastRequestedIndex++) {
+        if (_pageBitMap[g_lastRequestedIndex]) {
             continue;
         }
-        lockPages((void *)(i * PAGE_SIZE));
-        return (void *)(i * PAGE_SIZE);
+        lockPages((void *)(g_lastRequestedIndex * PAGE_SIZE));
+        return (void *)(g_lastRequestedIndex * PAGE_SIZE);
     }
 
     // We've run out of free pages.

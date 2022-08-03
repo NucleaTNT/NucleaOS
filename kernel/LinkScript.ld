@@ -3,7 +3,7 @@ ENTRY(_kernelEntry)
 
 SECTIONS
 {
-    _KernelBeginAddr = .;
+    _KernelBegin = .;
 	.text : ALIGN(0x1000)
 	{
 		*(.text)
@@ -24,5 +24,5 @@ SECTIONS
 		*(COMMON)
 		*(.bss)
 	}
-    _KernelEndAddr = .;
+    _KernelEnd = .;
 }

@@ -1,10 +1,10 @@
 #include "Str.hpp"
 
-static char OutputBuffer[128];
-static char PadOutputBuffer[128];
+static char OutputBuffer[128] = {};
+static char PadOutputBuffer[128] = {};
 
 void ensureBufferSafety(char** buffer, size_t bufferLen = 128) {
-    *buffer[bufferLen] = 0;
+    *buffer[bufferLen - 1] = 0;
 }
 
 template <typename T>
@@ -63,14 +63,14 @@ const char* to_hstring(T value) {
     uint64_t* valPtr = (uint64_t*)&value;
     uint8_t *ptr, tmp, size = (sizeof(T) * 2) - 1;
 
-    for (uint8_t i = 0; i < size; i++) {
+    for (uint8_t i = 0; i < (size / 2) + 1; i++) {
         ptr = ((uint8_t*)valPtr + i);
 
         tmp = ((*ptr & 0xf0) >> 4);
-        OutputBuffer[size - ((i * 2) + 1)] = tmp + ((tmp > 9) ? 55 : '0');
+        OutputBuffer[(size - ((i * 2) + 1))] = tmp + ((tmp > 9) ? 55 : '0');
 
         tmp = (*ptr & 0x0f);
-        OutputBuffer[size - (i * 2)] = tmp + ((tmp > 9) ? 55 : '0');
+        OutputBuffer[(size - (i * 2))] = tmp + ((tmp > 9) ? 55 : '0');
     }
     OutputBuffer[size + 1] = 0;  // Null termination
 

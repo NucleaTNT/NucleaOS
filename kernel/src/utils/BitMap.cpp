@@ -24,7 +24,7 @@ bool BitMap::Get(uint64_t index) {
     return ((_buffer[byteIndex] & bitMask) > 0);
 }
 
-bool BitMap::Set(uint64_t index, bool value) {
+bool BitMap::Set(uint64_t index, bool state) {
     if (index > (_size * 8)) {
         return false;
     }
@@ -34,7 +34,7 @@ bool BitMap::Set(uint64_t index, bool value) {
     uint8_t bitMask = 0b10000000 >> bitIndex;
 
     _buffer[byteIndex] &= ~bitMask;
-    if (value) {
+    if (state) {
         _buffer[byteIndex] |= bitMask;
     }
 

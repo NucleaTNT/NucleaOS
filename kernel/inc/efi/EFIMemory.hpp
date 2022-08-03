@@ -36,8 +36,8 @@ enum EFI_MEMORY_TYPE {
  */
 struct EFI_MEMORY_DESCRIPTOR {
     EFI_MEMORY_TYPE Type;       // Type of the descriptor. Ranges from [0..EfiMaxMemoryType].
-    uint64_t *PhysicalAddress,  // Physical address of the memory this descriptor describes.
-        VirtualAddress;         // Virtual address of the memory this descriptor describes.
+    uint64_t* PhysicalAddress;  // Physical address of the memory this descriptor describes.
+    uint64_t* VirtualAddress;   // Virtual address of the memory this descriptor describes.
     uint64_t PageCount;         // Number of pages that the memory this descriptor describes occupies.
     uint64_t Attributes;        // Attributes relating to the memory this descriptor describes.
 };

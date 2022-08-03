@@ -80,3 +80,5 @@ class PageFrameAllocator {
      */
     size_t getReservedMemorySize();
 };
+
+extern PageFrameAllocator g_PageFrameAllocator;
