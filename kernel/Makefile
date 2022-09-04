@@ -9,7 +9,7 @@ CC = gcc
 LD = ld
 
 ASMFLAGS =
-CFLAGS = -ffreestanding -fshort-wchar -I $(INCDIR) -g
+CFLAGS = -ffreestanding -fshort-wchar -I $(INCDIR) -Wno-narrowing -g 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 
 BUILDDIR = bin

@@ -1,8 +1,10 @@
 #include "utils/KernelUtility.hpp"
 
-#include "TextRenderer.hpp"
 #include "interrupts/InterruptDescriptorTable.hpp"
 #include "interrupts/Interrupts.hpp"
+#include "interrupts/PIC.hpp"
+#include "io/IOBus.hpp"
+#include "io/graphics/TextRenderer.hpp"
 #include "memory/GlobalDescriptorTable.hpp"
 
 void prepareMemory(BootInfo *bootInfo) {
@@ -40,14 +42,40 @@ void prepareInterrupts() {
     idtRegister.Size = 0x0fff;
     idtRegister.Offset = (uint64_t)g_PageFrameAllocator.requestPage();
 
+    InterruptDescriptor *interrupt_DoubleFault = (InterruptDescriptor *)(idtRegister.Offset + 0x8 * sizeof(InterruptDescriptor));
+    interrupt_DoubleFault->setOffset((uint64_t)handler_DoubleFault);
+    interrupt_DoubleFault->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
+    interrupt_DoubleFault->Selector = 0x08;
+
+    InterruptDescriptor *interrupt_GeneralProtectionFault = (InterruptDescriptor *)(idtRegister.Offset + 0xd * sizeof(InterruptDescriptor));
+    interrupt_GeneralProtectionFault->setOffset((uint64_t)handler_GeneralProtectionFault);
+    interrupt_GeneralProtectionFault->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
+    interrupt_GeneralProtectionFault->Selector = 0x08;
+
     InterruptDescriptor *interrupt_PageFault = (InterruptDescriptor *)(idtRegister.Offset + 0xe * sizeof(InterruptDescriptor));
     interrupt_PageFault->setOffset((uint64_t)handler_PageFault);
     interrupt_PageFault->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
     interrupt_PageFault->Selector = 0x08;
 
+    InterruptDescriptor *interrupt_Keyboard = (InterruptDescriptor *)(idtRegister.Offset + 0x21 * sizeof(InterruptDescriptor));
+    interrupt_Keyboard->setOffset((uint64_t)handler_KeyboardInterrupt);
+    interrupt_Keyboard->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
+    interrupt_Keyboard->Selector = 0x08;
+
+    asm("cli");
+
     asm("lidt %0"
         :
         : "m"(idtRegister));
+
+    remapPIC();
+
+    /* Unmask keyboard interrupt. */
+    outb(PIC_MASTER_DATA, 0b11111101);
+    outb(PIC_SLAVE_DATA, 0b11111111);
+
+    /* Re-enable interrupts. */
+    asm("sti");
 }
 
 static TextRenderer OUTPUT((FrameBuffer){}, (PSF1_Font){}, 0);

@@ -53,7 +53,8 @@ EFI_STATUS getMemoryMap(EFI_SYSTEM_TABLE *systemTable, MemoryMapInfo *memoryMapI
         memoryMapInfo->MemoryMap,
         &memoryMapInfo->MapKey,
         &memoryMapInfo->DescriptorSize,
-        &memoryMapInfo->DescriptorVersion);
+        &memoryMapInfo->DescriptorVersion
+    );
 
     if (status == EFI_BUFFER_TOO_SMALL) {
         // ! Yes, hard coded value bad, I know. Will work something out.
@@ -73,7 +74,8 @@ EFI_STATUS getMemoryMap(EFI_SYSTEM_TABLE *systemTable, MemoryMapInfo *memoryMapI
             memoryMapInfo->MemoryMap,
             &memoryMapInfo->MapKey,
             &memoryMapInfo->DescriptorSize,
-            &memoryMapInfo->DescriptorVersion);
+            &memoryMapInfo->DescriptorVersion
+        );
         if (EFI_ERROR(status)) {
             StatusToString(ErrMsgBuffer, status);
             Print(L"[ERR]: Failed to get MemoryMap(1). Reason: %s\n\r", ErrMsgBuffer);
@@ -152,24 +154,17 @@ EFI_STATUS initializeGOP() {
                     pxFormat = L"Invalid";
             }
 
-            Print(L"%03d(v%d): Res -> %dx%d, PixFormat -> %s, Pixels / ScanLine -> %d%s\n\r",
-                  i,
-                  info->Version,
-                  info->HorizontalResolution,
-                  info->VerticalResolution,
-                  pxFormat,
-                  info->PixelsPerScanLine,
-                  (i == nativeMode) ? L"\t(Current)" : L"");
+            Print(L"%03d(v%d): Res -> %dx%d, PixFormat -> %s, Pixels / ScanLine -> %d%s\n\r", i, info->Version, info->HorizontalResolution, info->VerticalResolution, pxFormat, info->PixelsPerScanLine, (i == nativeMode) ? L" (Current)" : L"");
         }
     }
 
-    status = uefi_call_wrapper(gop->SetMode, 2, gop, nativeMode);
-    if (EFI_ERROR(status)) {
-        StatusToString(ErrMsgBuffer, status);
-        Print(L"[ERR]: Unable to set mode %03d. Reason: %s\n\r", nativeMode, ErrMsgBuffer);
-    } else {
-        Print(L"[OK]: Successfully set GOP mode: %03d\n\r", nativeMode);
-    }
+    // status = uefi_call_wrapper(gop->SetMode, 2, gop, nativeMode);
+    // if (EFI_ERROR(status)) {
+    //     StatusToString(ErrMsgBuffer, status);
+    //     Print(L"[ERR]: Unable to set mode %03d. Reason: %s\n\r", nativeMode, ErrMsgBuffer);
+    // } else {
+    //     Print(L"[OK]: Successfully set GOP mode: %03d\n\r", nativeMode);
+    // }
 
     GlobalFrameBuffer.BaseAddress = (void *)gop->Mode->FrameBufferBase;
     GlobalFrameBuffer.BufferSize = gop->Mode->FrameBufferSize;
@@ -214,9 +209,7 @@ PSF1_Font *loadFont(EFI_FILE *directory, CHAR16 *path, EFI_HANDLE imageHandle, E
     fontFile->Read(fontFile, &headerSize, fontHeader);
 
     if (fontHeader->Magic != PSF1_FONT_MAGIC) {
-        Print(L"[ERR]: Font file had invalid magic/identifier bytes. Expected: 0x%x, Found: 0x%x\n\r",
-              PSF1_FONT_MAGIC,
-              fontHeader->Magic);
+        Print(L"[ERR]: Font file had invalid magic/identifier bytes. Expected: 0x%x, Found: 0x%x\n\r", PSF1_FONT_MAGIC, fontHeader->Magic);
         return NULL;
     }
 
@@ -331,7 +324,8 @@ EFI_STATUS efi_main(EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable) {
             GlobalFrameBuffer.BufferSize,
             GlobalFrameBuffer.Width,
             GlobalFrameBuffer.Height,
-            GlobalFrameBuffer.PixelsPerScanLine);
+            GlobalFrameBuffer.PixelsPerScanLine
+        );
     }
 
     Print(L"[INFO]: Loading PSF1 font: \"Terminus\"...\n\r");
@@ -339,8 +333,7 @@ EFI_STATUS efi_main(EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable) {
     if (terminusFont == NULL) {
         return EFI_INVALID_PARAMETER;
     } else {
-        Print(L"[OK]: Successfully loaded new font: Terminus[%d].\n\r",
-              terminusFont->Header->CharSize);
+        Print(L"[OK]: Successfully loaded new font: Terminus[%d].\n\r", terminusFont->Header->CharSize);
     }
 
     Print(L"[INFO]: Accessing memory map...\n\r");
