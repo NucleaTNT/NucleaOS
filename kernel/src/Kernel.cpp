@@ -22,7 +22,7 @@ extern "C" void _kernelEntry(BootInfo bootInfo) {
     g_TextRenderer._print(str_padleft(to_string((double)totalMemSize / 0x100000, 3), 16, ' '));
     g_TextRenderer._print("MiB\n\r");
 
-    asm("int $0x0e");
+    // asm("int $0x0e");
 
     while (true) {
     }

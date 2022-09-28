@@ -3,8 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "Str.hpp"
-#include "TextRenderer.hpp"
+#include "io/graphics/TextRenderer.hpp"
+#include "utils/Str.hpp"
 
 /**
  * @brief Enum containing all the possible types of memory segments in the

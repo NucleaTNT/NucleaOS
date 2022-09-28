@@ -3,16 +3,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "FrameBuffer.hpp"
-#include "Math.hpp"
-#include "Str.hpp"
 #include "efi/EFIMemory.hpp"
 #include "font/PSF1.hpp"
+#include "io/graphics/FrameBuffer.hpp"
 #include "memory/Memory.hpp"
 #include "memory/PageFrameAllocator.hpp"
 #include "memory/PageTableManager.hpp"
 #include "memory/Paging.hpp"
 #include "utils/BitMap.hpp"
+#include "utils/Math.hpp"
+#include "utils/Str.hpp"
 
 struct BootInfo {
     FrameBuffer *GlobalFrameBuffer;
