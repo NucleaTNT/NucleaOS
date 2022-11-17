@@ -9,8 +9,8 @@ CC = gcc
 LD = ld
 
 ASMFLAGS =
-CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -mno-red-zone -I $(INCDIR) -g 
-LDFLAGS = -T $(LDS) -static -shared -Bsymbolic -nostdlib -fno-stack-protection
+CFLAGS = -ffreestanding -fshort-wchar -fno-exceptions -mno-red-zone -I $(INCDIR) -g
+LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 
 BUILDDIR = bin
 INCDIR = inc

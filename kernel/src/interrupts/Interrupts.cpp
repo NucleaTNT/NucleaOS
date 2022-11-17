@@ -4,6 +4,7 @@
 #include "io/IOBus.hpp"
 #include "io/graphics/TextRenderer.hpp"
 #include "io/keyboard/PS2_Keyboard.hpp"
+#include "io/mouse/PS2_Mouse.hpp"
 #include "memory/Memory.hpp"
 #include "utils/Panic.hpp"
 
@@ -37,4 +38,9 @@ __attribute__((interrupt)) void handler_KeyboardInterrupt(InterruptFrame *frame)
     handlePS2_Keyboard(scanCode);
 
     pic_EndMaster();
+}
+
+__attribute__((interrupt)) void handler_MouseInterrupt(InterruptFrame *frame) {
+    handlePS2MouseInterrupt(inb(0x60));
+    pic_EndSlave();
 }

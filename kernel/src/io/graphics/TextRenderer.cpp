@@ -1,5 +1,6 @@
 #include "io/graphics/TextRenderer.hpp"
 
+#include "io/graphics/Colors.hpp"
 #include "memory/Memory.hpp"
 
 TextRenderer g_TextRenderer((FrameBuffer){}, (PSF1_Font){}, 0);
@@ -112,6 +113,21 @@ void TextRenderer::_print(const char* str) {
         char chrToPrint = *(str + i);
         _printChar(chrToPrint);
     }
+}
+
+void TextRenderer::_printerr(const char* errStr) {
+    uint32_t tempBGColor = this->BackgroundColor,
+             tempFGColor = this->ForegroundColor;
+
+    if (tempBGColor == COLOR_RED) {
+        this->BackgroundColor = COLOR_BLACK;
+    }
+    this->ForegroundColor = COLOR_RED;
+
+    _print(errStr);
+
+    this->BackgroundColor = tempBGColor;
+    this->ForegroundColor = tempFGColor;
 }
 
 FrameBuffer TextRenderer::getTargetBuffer() {

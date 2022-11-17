@@ -63,6 +63,18 @@ class TextRenderer {
     void _print(const char* str);
 
     /**
+     * @brief Prints an error message to the targetBuffer at CursorPosition.
+     *
+     * @param str Pointer to the message to write to the targetBuffer.
+     *
+     * This method does some additional checks before printing to the screen
+     * to ensure the text will be both RED and visible on the screen. Also
+     * handles returning the text/background color back to its previous
+     * value.
+     */
+    void _printerr(const char* errStr);
+
+    /**
      * @brief Get the current buffer being written to.
      *
      * @return FrameBuffer object targetBuffer

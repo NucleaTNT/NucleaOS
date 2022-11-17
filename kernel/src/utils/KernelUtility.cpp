@@ -5,6 +5,7 @@
 #include "interrupts/PIC.hpp"
 #include "io/IOBus.hpp"
 #include "io/graphics/TextRenderer.hpp"
+#include "io/mouse/PS2_Mouse.hpp"
 #include "memory/GlobalDescriptorTable.hpp"
 
 void prepareMemory(BootInfo *bootInfo) {
@@ -38,30 +39,24 @@ void prepareMemory(BootInfo *bootInfo) {
 }
 
 IDTRegister idtRegister;
+void registerInterrupt(void *handlerMethod, uint8_t entryOffset, uint8_t typesAttrs, uint8_t selector) {
+    InterruptDescriptor *interruptDescriptor = (InterruptDescriptor *)(idtRegister.Offset + entryOffset * sizeof(InterruptDescriptor));
+    interruptDescriptor->setOffset((uint64_t)handlerMethod);
+    interruptDescriptor->TypesAttrs = typesAttrs;
+    interruptDescriptor->Selector = selector;
+}
+
 void prepareInterrupts() {
     idtRegister.Size = 0x0fff;
     idtRegister.Offset = (uint64_t)g_PageFrameAllocator.requestPage();
 
-    InterruptDescriptor *interrupt_DoubleFault = (InterruptDescriptor *)(idtRegister.Offset + 0x8 * sizeof(InterruptDescriptor));
-    interrupt_DoubleFault->setOffset((uint64_t)handler_DoubleFault);
-    interrupt_DoubleFault->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
-    interrupt_DoubleFault->Selector = 0x08;
+    registerInterrupt((void *)handler_DoubleFault, 0x8, IDT_TYPES_ATTRS_INTERRUPT_GATE, 0x08);
+    registerInterrupt((void *)handler_GeneralProtectionFault, 0xd, IDT_TYPES_ATTRS_INTERRUPT_GATE, 0x08);
+    registerInterrupt((void *)handler_PageFault, 0xe, IDT_TYPES_ATTRS_INTERRUPT_GATE, 0x08);
+    registerInterrupt((void *)handler_KeyboardInterrupt, 0x21, IDT_TYPES_ATTRS_INTERRUPT_GATE, 0x08);
+    registerInterrupt((void *)handler_MouseInterrupt, 0x2c, IDT_TYPES_ATTRS_INTERRUPT_GATE, 0x08);
 
-    InterruptDescriptor *interrupt_GeneralProtectionFault = (InterruptDescriptor *)(idtRegister.Offset + 0xd * sizeof(InterruptDescriptor));
-    interrupt_GeneralProtectionFault->setOffset((uint64_t)handler_GeneralProtectionFault);
-    interrupt_GeneralProtectionFault->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
-    interrupt_GeneralProtectionFault->Selector = 0x08;
-
-    InterruptDescriptor *interrupt_PageFault = (InterruptDescriptor *)(idtRegister.Offset + 0xe * sizeof(InterruptDescriptor));
-    interrupt_PageFault->setOffset((uint64_t)handler_PageFault);
-    interrupt_PageFault->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
-    interrupt_PageFault->Selector = 0x08;
-
-    InterruptDescriptor *interrupt_Keyboard = (InterruptDescriptor *)(idtRegister.Offset + 0x21 * sizeof(InterruptDescriptor));
-    interrupt_Keyboard->setOffset((uint64_t)handler_KeyboardInterrupt);
-    interrupt_Keyboard->TypesAttrs = IDT_TYPES_ATTRS_INTERRUPT_GATE;
-    interrupt_Keyboard->Selector = 0x08;
-
+    /* Disable interrupts while loading new IDT. */
     asm("cli");
 
     asm("lidt %0"
@@ -69,13 +64,6 @@ void prepareInterrupts() {
         : "m"(idtRegister));
 
     remapPIC();
-
-    /* Unmask keyboard interrupt. */
-    outb(PIC_MASTER_DATA, 0b11111101);
-    outb(PIC_SLAVE_DATA, 0b11111111);
-
-    /* Re-enable interrupts. */
-    asm("sti");
 }
 
 static TextRenderer OUTPUT((FrameBuffer){}, (PSF1_Font){}, 0);
@@ -91,4 +79,13 @@ void initializeKernel(BootInfo *bootInfo) {
     g_TextRenderer = OUTPUT;
 
     prepareInterrupts();
+
+    initPS2Mouse();
+
+    /* Unmask PIC interrupts. */
+    outb(PIC_MASTER_DATA, 0b11111001);
+    outb(PIC_SLAVE_DATA, 0b11101111);
+
+    /* Re-enable interrupts. */
+    asm("sti");
 }

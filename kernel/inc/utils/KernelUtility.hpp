@@ -6,6 +6,7 @@
 #include "efi/EFIMemory.hpp"
 #include "font/PSF1.hpp"
 #include "io/graphics/FrameBuffer.hpp"
+#include "io/mouse/PS2_Mouse.hpp"
 #include "memory/Memory.hpp"
 #include "memory/PageFrameAllocator.hpp"
 #include "memory/PageTableManager.hpp"
